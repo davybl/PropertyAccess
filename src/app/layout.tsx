@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { DeviceSessionGuard } from "@/components/device-session-guard";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -15,6 +16,11 @@ export const metadata: Metadata = {
   title: "propertyaccess.app — Verified Direct-to-Caretaker Homes & Land in Kenya",
   description:
     "Zero broker fees. Unlock verified Kenyan caretaker contacts with a KES 200 7-Day Category Pass via M-Pesa.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "PropertyAccess",
+  },
 };
 
 export default function RootLayout({
@@ -35,6 +41,7 @@ export default function RootLayout({
             <DeviceSessionGuard />
           </Suspense>
           {children}
+          <PwaInstallPrompt />
         </ThemeProvider>
       </body>
     </html>
