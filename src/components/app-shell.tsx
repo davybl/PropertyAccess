@@ -143,7 +143,7 @@ export function AppShell({
       <main className="mx-auto max-w-6xl px-4 pt-5">{children}</main>
 
       {/* Mobile Fixed Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-subtle bg-card/95 px-2 py-2 backdrop-blur-md md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-subtle bg-card/95 px-2 py-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
         <div className="mx-auto flex max-w-md items-center justify-around">
           {navItems.map((item) => {
             const Icon = item.icon;
