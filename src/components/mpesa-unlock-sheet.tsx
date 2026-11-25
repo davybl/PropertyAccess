@@ -129,7 +129,7 @@ export function MpesaUnlockSheet({
     [listingId, onUnlocked]
   );
 
-  // Listen via Supabase Realtime + fallback poll while waiting for M-Pesa PIN
+  // Listen via Supabase Realtime + fallback poll + 65s timeout while waiting for M-Pesa PIN
   useEffect(() => {
     if (stage !== "pending" || !transactionId) return;
 
@@ -190,8 +190,18 @@ export function MpesaUnlockSheet({
       if (data) handleStatusRow(data);
     }, 3500);
 
+    const timeoutTimer = setTimeout(() => {
+      if (handled) return;
+      handled = true;
+      setErrorMessage(
+        "Confirmation timed out. If you didn't complete the M-Pesa PIN prompt, tap Try Again."
+      );
+      setStage("failed");
+    }, 65000);
+
     return () => {
       clearInterval(pollInterval);
+      clearTimeout(timeoutTimer);
       supabase.removeChannel(channel);
     };
   }, [stage, transactionId, finalizeReveal]);
@@ -364,6 +374,18 @@ export function MpesaUnlockSheet({
             <p className="text-[11px] font-semibold text-ink-muted">
               Listening for Safaricom confirmation...
             </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setTransactionId(null);
+                setErrorMessage(null);
+                setStage("form");
+              }}
+              className="text-xs font-bold text-ink-secondary underline hover:text-ink"
+            >
+              Cancel or change number
+            </button>
           </div>
         )}
 
