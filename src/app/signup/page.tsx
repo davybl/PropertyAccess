@@ -101,7 +101,7 @@ export default function SignupPage() {
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-10">
       <div className="mb-6 text-center">
         <Link href="/" className="text-2xl font-extrabold tracking-tight">
-          propertyaccess<span className="text-emerald-brand">.app</span>
+          propertyaccess<span className="text-emerald-brand">.ke</span>
         </Link>
         <p className="mt-1.5 text-sm text-ink-secondary">
           Direct-to-caretaker homes &amp; land in Kenya. Zero broker fees.
