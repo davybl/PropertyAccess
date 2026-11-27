@@ -14,6 +14,7 @@ import {
   User,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LegalLinks } from "@/components/legal-links";
 import {
   getDeviceLabel,
   getOrCreateDeviceId,
@@ -256,6 +257,9 @@ export default function SignupPage() {
           Sign in
         </Link>
       </p>
+      <div className="mt-5">
+        <LegalLinks />
+      </div>
     </main>
   );
 }

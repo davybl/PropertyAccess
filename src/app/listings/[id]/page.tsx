@@ -9,6 +9,7 @@ import {
   BedDouble,
   CalendarCheck,
   CheckCircle2,
+  ExternalLink,
   MapPin,
   Maximize2,
   ShieldCheck,
@@ -17,6 +18,8 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
 import { ListingMediaViewer } from "@/components/listing-media-viewer";
+import { ReportListingButton } from "@/components/report-listing-button";
+import { buildGoogleMapsSearchUrl } from "@/data/kenya-locations";
 import {
   CaretakerUnlockCard,
   type RevealedContactData,
@@ -261,6 +264,24 @@ async function ListingDetailContent({
                       {listing.landmark ? ` • Near ${listing.landmark}` : ""}
                     </span>
                   </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <a
+                      href={buildGoogleMapsSearchUrl({
+                        landmark: listing.landmark,
+                        neighborhood: listing.neighborhood,
+                        city: listing.county,
+                      })}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-subtle bg-canvas px-3 py-2 text-xs font-semibold text-ink-secondary transition hover:border-emerald-brand hover:text-emerald-brand"
+                    >
+                      Open in Google Maps
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                    {userRole === "tenant" && (
+                      <ReportListingButton listingId={listing.id} />
+                    )}
+                  </div>
                 </div>
 
                 <div className="text-left sm:text-right">

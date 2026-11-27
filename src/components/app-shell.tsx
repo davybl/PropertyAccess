@@ -13,6 +13,8 @@ import {
   User,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationBell } from "@/components/notification-bell";
+import { LegalLinks } from "@/components/legal-links";
 import { createClient } from "@/lib/supabase/client";
 import { clearSessionToken } from "@/lib/device";
 import type { ActivePassSummary } from "@/types/property";
@@ -123,6 +125,8 @@ export function AppShell({
               </Link>
             )}
 
+            {userEmail && <NotificationBell />}
+
             <ThemeToggle />
 
             {userEmail && (
@@ -141,6 +145,10 @@ export function AppShell({
 
       {/* Main Content */}
       <main className="mx-auto max-w-6xl px-4 pt-5">{children}</main>
+
+      <footer className="mx-auto max-w-6xl px-4 pb-8 pt-6">
+        <LegalLinks />
+      </footer>
 
       {/* Mobile Fixed Bottom Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-subtle bg-card/95 px-2 py-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">

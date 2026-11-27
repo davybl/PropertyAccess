@@ -125,6 +125,22 @@ export function MpesaUnlockSheet({
       setUnlockedContact(revealed);
       setStage("unlocked");
       onUnlocked(revealed);
+      void fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: "listing_unlocked", listingId }),
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            console.error(
+              "Could not notify listing manager:",
+              await response.text()
+            );
+          }
+        })
+        .catch((notificationError: unknown) => {
+          console.error("Could not notify listing manager:", notificationError);
+        });
     },
     [listingId, onUnlocked]
   );

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import {
   BadgeCheck,
   Building2,
+  CalendarCheck,
+  CheckCircle2,
   Compass,
   ExternalLink,
   KeyRound,
@@ -60,7 +62,6 @@ export interface ManagerLeadRow {
   listing_title: string;
   unit_tag: string | null;
   viewing_status: string;
-  scheduled_for: string | null;
   revealed_at: string;
 }
 
@@ -82,8 +83,11 @@ export function ManagerDashboardClient({
     "units"
   );
   const [listings, setListings] = useState(initialListings);
+  const [leads, setLeads] = useState(initialLeads);
   const [buildings, setBuildings] = useState(initialBuildings);
   const [busyListingId, setBusyListingId] = useState<string | null>(null);
+  const [busyLeadId, setBusyLeadId] = useState<string | null>(null);
+  const [leadError, setLeadError] = useState<string | null>(null);
 
   // Quick Add Building state
   const [showBuildingForm, setShowBuildingForm] = useState(false);
@@ -163,6 +167,42 @@ export function ManagerDashboardClient({
     }
   };
 
+  const handleViewingStatusUpdate = async (
+    lead: ManagerLeadRow,
+    viewingStatus: "scheduled" | "viewed"
+  ) => {
+    setBusyLeadId(lead.id);
+    setLeadError(null);
+
+    try {
+      const response = await fetch("/api/manager/viewing-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ revealId: lead.id, viewingStatus }),
+      });
+      const result = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        setLeadError(result.error || "Could not update the viewing status.");
+        return;
+      }
+
+      setLeads((current) =>
+        current.map((item) =>
+          item.id === lead.id ? { ...item, viewing_status: viewingStatus } : item
+        )
+      );
+    } catch (error) {
+      setLeadError(
+        error instanceof Error
+          ? error.message
+          : "Could not update the viewing status."
+      );
+    } finally {
+      setBusyLeadId(null);
+    }
+  };
+
   const handleCreateBuilding = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bName.trim() || !bNeighborhood.trim()) return;
@@ -199,6 +239,8 @@ export function ManagerDashboardClient({
   };
 
   const kycStatus = profile.kyc_status || "unverified";
+  const isKycVerified =
+    kycStatus === "verified" || kycStatus === "approved";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 pb-28 md:pb-12">
@@ -210,7 +252,7 @@ export function ManagerDashboardClient({
               <Building2 className="h-3.5 w-3.5" />
               Property Manager Hub
             </span>
-            {kycStatus === "verified" ? (
+            {isKycVerified ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-brand/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-brand">
                 <BadgeCheck className="h-3.5 w-3.5" /> KYC Verified
               </span>
@@ -396,7 +438,7 @@ export function ManagerDashboardClient({
               : "bg-card text-ink-secondary hover:text-ink"
           }`}
         >
-          Tenant Unlocks ({initialLeads.length})
+          Tenant Unlocks ({leads.length})
         </button>
       </div>
 
@@ -555,7 +597,7 @@ export function ManagerDashboardClient({
       {/* TAB 3: TENANT UNLOCKS */}
       {activeTab === "leads" && (
         <div className="space-y-3">
-          {initialLeads.length === 0 ? (
+          {leads.length === 0 ? (
             <div className="rounded-2xl border border-subtle bg-card p-8 text-center">
               <Users className="mx-auto h-9 w-9 text-ink-muted" />
               <h3 className="mt-2 text-sm font-extrabold text-ink">
@@ -567,17 +609,23 @@ export function ManagerDashboardClient({
               </p>
             </div>
           ) : (
-            initialLeads.map((lead) => (
+            <>
+              {leadError && (
+                <p role="alert" className="text-xs font-semibold text-danger">
+                  {leadError}
+                </p>
+              )}
+              {leads.map((lead) => (
               <div
                 key={lead.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-subtle bg-card p-4"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-brand/15 text-emerald-brand">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-brand/15 text-emerald-brand">
                     <KeyRound className="h-4 w-4" />
                   </div>
-                  <div>
-                    <p className="text-xs font-extrabold text-ink">
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-extrabold text-ink">
                       {lead.listing_title}{" "}
                       {lead.unit_tag ? `(${lead.unit_tag})` : ""}
                     </p>
@@ -592,11 +640,45 @@ export function ManagerDashboardClient({
                   </div>
                 </div>
 
-                <span className="rounded-full bg-emerald-brand/10 px-3 py-1 text-[11px] font-extrabold capitalize text-emerald-brand">
-                  {lead.viewing_status || "unlocked"}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-muted-surface px-3 py-1 text-[11px] font-extrabold capitalize text-ink-secondary">
+                    {lead.viewing_status || "unlocked"}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={
+                      busyLeadId === lead.id ||
+                      lead.viewing_status === "scheduled" ||
+                      lead.viewing_status === "viewed" ||
+                      lead.viewing_status === "disputed" ||
+                      lead.viewing_status === "refund_approved"
+                    }
+                    onClick={() =>
+                      handleViewingStatusUpdate(lead, "scheduled")
+                    }
+                    className="inline-flex items-center gap-1 rounded-xl border border-subtle bg-canvas px-3 py-1.5 text-[11px] font-bold text-ink-secondary hover:border-emerald-brand hover:text-emerald-brand disabled:opacity-50"
+                  >
+                    <CalendarCheck className="h-3.5 w-3.5" />
+                    Schedule viewing
+                  </button>
+                  <button
+                    type="button"
+                    disabled={
+                      busyLeadId === lead.id ||
+                      lead.viewing_status === "viewed" ||
+                      lead.viewing_status === "disputed" ||
+                      lead.viewing_status === "refund_approved"
+                    }
+                    onClick={() => handleViewingStatusUpdate(lead, "viewed")}
+                    className="inline-flex items-center gap-1 rounded-xl bg-emerald-brand px-3 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-hover disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Mark viewed
+                  </button>
+                </div>
               </div>
-            ))
+              ))}
+            </>
           )}
         </div>
       )}

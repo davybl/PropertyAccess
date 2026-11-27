@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, Lock, Mail, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LegalLinks } from "@/components/legal-links";
 import {
   getDeviceLabel,
   getOrCreateDeviceId,
@@ -152,6 +153,9 @@ export default function LoginPage() {
           Create an account
         </Link>
       </p>
+      <div className="mt-5">
+        <LegalLinks />
+      </div>
     </main>
   );
 }

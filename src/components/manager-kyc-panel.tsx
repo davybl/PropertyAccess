@@ -76,7 +76,7 @@ export function ManagerKycPanel({ profile }: ManagerKycPanelProps) {
         const ext = idFile.name.split(".").pop() || "jpg";
         const path = `${profile.id}/national-id-${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
-          .from("kyc-docs")
+          .from("kyc-documents")
           .upload(path, idFile, { upsert: true });
 
         if (uploadErr) {
@@ -89,7 +89,7 @@ export function ManagerKycPanel({ profile }: ManagerKycPanelProps) {
         const ext = ownershipFile.name.split(".").pop() || "pdf";
         const path = `${profile.id}/ownership-doc-${Date.now()}.${ext}`;
         const { error: uploadErr } = await supabase.storage
-          .from("kyc-docs")
+          .from("kyc-documents")
           .upload(path, ownershipFile, { upsert: true });
 
         if (uploadErr) {

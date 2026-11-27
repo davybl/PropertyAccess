@@ -12,12 +12,12 @@ import {
   Check,
   CheckCircle2,
   Compass,
-  KeyRound,
   Loader2,
   Sparkles,
   Trash2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { KENYA_LOCATIONS, type KenyaCity } from "@/data/kenya-locations";
 import type { PropertyCategory } from "@/types/property";
 import type { ManagerBuildingRow } from "@/components/manager-dashboard-client";
 
@@ -50,17 +50,6 @@ const KENYAN_AMENITIES = [
   "Close to Tarmac / Stage",
 ];
 
-const KENYAN_COUNTIES = [
-  "Nairobi",
-  "Kiambu",
-  "Machakos",
-  "Kajiado",
-  "Mombasa",
-  "Nakuru",
-  "Kisumu",
-  "Uasin Gishu",
-];
-
 export function AddUnitWizard({
   managerId,
   defaultCaretakerName,
@@ -80,9 +69,10 @@ export function AddUnitWizard({
   const [buildingId, setBuildingId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [unitTag, setUnitTag] = useState("");
-  const [county, setCounty] = useState("Nairobi");
+  const [county, setCounty] = useState<KenyaCity["city"]>("Nairobi");
   const [neighborhood, setNeighborhood] = useState("");
   const [landmark, setLandmark] = useState("");
+  const [customLandmark, setCustomLandmark] = useState("");
 
   // Step 2: Pricing, Specs & Amenities
   const [priceKes, setPriceKes] = useState("");
@@ -114,14 +104,42 @@ export function AddUnitWizard({
   const [sameWhatsapp, setSameWhatsapp] = useState(true);
   const [whatsappPhone, setWhatsappPhone] = useState(defaultCaretakerPhone);
 
+  const selectedCity = KENYA_LOCATIONS.find((item) => item.city === county);
+  const selectedNeighborhood = selectedCity?.neighborhoods.find(
+    (item) => item.name === neighborhood
+  );
+
   const handleSelectBuilding = (selectedId: string) => {
-    setBuildingId(selectedId);
     const found = buildings.find((b) => b.id === selectedId);
-    if (found) {
-      setCounty(found.county);
-      setNeighborhood(found.neighborhood);
-      if (found.landmark) setLandmark(found.landmark);
+    if (!found) {
+      setBuildingId("");
+      return;
     }
+
+    const city = KENYA_LOCATIONS.find((item) => item.city === found.county);
+    const matchingNeighborhood = city?.neighborhoods.find(
+      (item) => item.name === found.neighborhood
+    );
+    if (!city || !matchingNeighborhood) {
+      setBuildingId("");
+      setError("Choose a building with a supported city and neighborhood.");
+      return;
+    }
+
+    setBuildingId(selectedId);
+    setCounty(city.city);
+    setNeighborhood(matchingNeighborhood.name);
+    const matchingLandmark = matchingNeighborhood.landmarks.includes(
+      found.landmark ?? ""
+    )
+      ? found.landmark ?? ""
+      : found.landmark
+      ? "Other / Custom"
+      : "";
+    setLandmark(matchingLandmark);
+    setCustomLandmark(
+      matchingLandmark === "Other / Custom" ? found.landmark ?? "" : ""
+    );
   };
 
   const toggleAmenity = (label: string) => {
@@ -155,6 +173,10 @@ export function AddUnitWizard({
     if (current === 1) {
       if (!title.trim() || !neighborhood.trim()) {
         setError("Please enter a listing title and neighborhood.");
+        return false;
+      }
+      if (landmark === "Other / Custom" && !customLandmark.trim()) {
+        setError("Enter a custom nearby landmark.");
         return false;
       }
     }
@@ -206,7 +228,9 @@ export function AddUnitWizard({
           amenities: selectedAmenities,
           county: county.trim(),
           neighborhood: neighborhood.trim(),
-          landmark: landmark.trim() || null,
+          landmark:
+            (landmark === "Other / Custom" ? customLandmark : landmark).trim() ||
+            null,
           has_3d_tour: has360,
           tour_360_url: tour360Url.trim() || null,
           concierge_3d_requested: concierge3dRequested,
@@ -428,16 +452,25 @@ export function AddUnitWizard({
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-ink">
-                  County
+                  City
                 </label>
                 <select
                   value={county}
-                  onChange={(e) => setCounty(e.target.value)}
+                  onChange={(e) => {
+                    const city = KENYA_LOCATIONS.find(
+                      (item) => item.city === e.target.value
+                    );
+                    if (!city) return;
+                    setCounty(city.city);
+                    setNeighborhood("");
+                    setLandmark("");
+                    setCustomLandmark("");
+                  }}
                   className="w-full rounded-xl border border-subtle bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-emerald-brand"
                 >
-                  {KENYAN_COUNTIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                  {KENYA_LOCATIONS.map((item) => (
+                    <option key={item.city} value={item.city}>
+                      {item.city}
                     </option>
                   ))}
                 </select>
@@ -446,13 +479,22 @@ export function AddUnitWizard({
                 <label className="mb-1.5 block text-xs font-bold text-ink">
                   Neighborhood / Estate
                 </label>
-                <input
-                  type="text"
+                <select
                   value={neighborhood}
-                  onChange={(e) => setNeighborhood(e.target.value)}
-                  placeholder="Kahawa Wendani"
+                  onChange={(e) => {
+                    setNeighborhood(e.target.value);
+                    setLandmark("");
+                    setCustomLandmark("");
+                  }}
                   className="w-full rounded-xl border border-subtle bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-emerald-brand"
-                />
+                >
+                  <option value="">Select a neighborhood</option>
+                  {selectedCity?.neighborhoods.map((item) => (
+                    <option key={item.name} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -460,13 +502,31 @@ export function AddUnitWizard({
               <label className="mb-1.5 block text-xs font-bold text-ink">
                 Nearest Landmark (Helps tenants locate easily)
               </label>
-              <input
-                type="text"
+              <select
                 value={landmark}
                 onChange={(e) => setLandmark(e.target.value)}
-                placeholder="200m off Thika Superhighway near Magunas"
-                className="w-full rounded-xl border border-subtle bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-emerald-brand"
-              />
+                disabled={!selectedNeighborhood}
+                className="w-full rounded-xl border border-subtle bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-emerald-brand disabled:opacity-60"
+              >
+                <option value="">Select a landmark (optional)</option>
+                {selectedNeighborhood?.landmarks.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+                {selectedNeighborhood && (
+                  <option value="Other / Custom">Other / Custom</option>
+                )}
+              </select>
+              {landmark === "Other / Custom" && (
+                <input
+                  type="text"
+                  value={customLandmark}
+                  onChange={(e) => setCustomLandmark(e.target.value)}
+                  placeholder="Enter a nearby landmark"
+                  className="mt-2 w-full rounded-xl border border-subtle bg-canvas px-3.5 py-2.5 text-sm text-ink outline-none focus:border-emerald-brand"
+                />
+              )}
             </div>
           </div>
         )}

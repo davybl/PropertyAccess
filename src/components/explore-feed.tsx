@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Building2, Gavel, Home, Landmark, Search, Sparkles } from "lucide-react";
 import { PropertyCard } from "@/components/property-card";
+import { ALL_NEIGHBORHOODS, KENYA_LOCATIONS } from "@/data/kenya-locations";
 import type { ListingItem, PropertyCategory } from "@/types/property";
 
 interface ExploreFeedProps {
@@ -22,16 +23,6 @@ const CATEGORIES: {
   { id: "auction", label: "Auctions", icon: Gavel },
 ];
 
-const NEIGHBORHOOD_CHIPS = [
-  "All Areas",
-  "Kahawa Wendani",
-  "Ruiru",
-  "Roysambu",
-  "Juja",
-  "Kilimani",
-  "Westlands",
-];
-
 export function ExploreFeed({
   listings,
   savedIds,
@@ -39,8 +30,16 @@ export function ExploreFeed({
 }: ExploreFeedProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<PropertyCategory>("rent");
+  const [selectedCity, setSelectedCity] = useState("All Cities");
   const [selectedArea, setSelectedArea] = useState<string>("All Areas");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const availableNeighborhoods =
+    selectedCity === "All Cities"
+      ? ALL_NEIGHBORHOODS
+      : ALL_NEIGHBORHOODS.filter(
+          (neighborhood) => neighborhood.city === selectedCity
+        );
 
   const savedSet = useMemo(() => new Set(savedIds), [savedIds]);
 
@@ -62,6 +61,13 @@ export function ExploreFeed({
     return listings.filter((item) => {
       if (item.category !== selectedCategory) return false;
       if (
+        selectedCity !== "All Cities" &&
+        item.county.trim().replace(/\s+county$/i, "").toLowerCase() !==
+          selectedCity.toLowerCase()
+      ) {
+        return false;
+      }
+      if (
         selectedArea !== "All Areas" &&
         item.neighborhood.toLowerCase() !== selectedArea.toLowerCase()
       ) {
@@ -75,7 +81,7 @@ export function ExploreFeed({
         item.county.toLowerCase().includes(q)
       );
     });
-  }, [listings, selectedCategory, selectedArea, searchQuery]);
+  }, [listings, selectedCategory, selectedCity, selectedArea, searchQuery]);
 
   const featuredListings = useMemo(
     () => filteredListings.filter((item) => item.is_featured),
@@ -96,16 +102,37 @@ export function ExploreFeed({
             </p>
           </div>
 
-          {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-ink-muted" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search estate, landmark..."
-              className="w-full rounded-xl border border-subtle bg-canvas py-2 pl-9 pr-3 text-xs outline-none focus:border-emerald-brand"
-            />
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <label className="sr-only" htmlFor="explore-city">
+              Filter by city
+            </label>
+            <select
+              id="explore-city"
+              value={selectedCity}
+              onChange={(event) => {
+                setSelectedCity(event.target.value);
+                setSelectedArea("All Areas");
+              }}
+              className="w-full rounded-xl border border-subtle bg-canvas px-3 py-2 text-xs font-semibold text-ink outline-none focus:border-emerald-brand sm:w-36"
+            >
+              <option value="All Cities">All Cities</option>
+              {KENYA_LOCATIONS.map((item) => (
+                <option key={item.city} value={item.city}>
+                  {item.city}
+                </option>
+              ))}
+            </select>
+
+            <div className="relative w-full sm:w-72">
+              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-ink-muted" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search estate, landmark..."
+                className="w-full rounded-xl border border-subtle bg-canvas py-2 pl-9 pr-3 text-xs outline-none focus:border-emerald-brand"
+              />
+            </div>
           </div>
         </div>
 
@@ -143,7 +170,7 @@ export function ExploreFeed({
 
         {/* Neighborhood Jump Chips */}
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-          {NEIGHBORHOOD_CHIPS.map((area) => {
+          {["All Areas", ...availableNeighborhoods.map((item) => item.name)].map((area) => {
             const active = selectedArea === area;
             return (
               <button
