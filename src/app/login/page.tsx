@@ -147,7 +147,7 @@ export default function LoginPage() {
       </div>
 
       <p className="mt-5 text-center text-xs text-ink-secondary">
-        New to propertyaccess.app?{" "}
+        New to propertyaccess.ke?{" "}
         <Link href="/signup" className="font-bold text-emerald-brand hover:underline">
           Create an account
         </Link>

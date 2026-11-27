@@ -166,7 +166,7 @@ export function ManagerKycPanel({ profile }: ManagerKycPanelProps) {
         </div>
 
         <p className="mt-2 text-xs text-ink-secondary">
-          Every caretaker and landlord on propertyaccess.app undergoes ID and
+          Every caretaker and landlord on propertyaccess.ke undergoes ID and
           property authority screening to keep the platform 100% broker-free.
         </p>
 

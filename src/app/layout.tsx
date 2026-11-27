@@ -13,9 +13,19 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "propertyaccess.app — Verified Direct-to-Caretaker Homes & Land in Kenya",
+  metadataBase: new URL("https://propertyaccess-ke.netlify.app"),
+  title: "propertyaccess.ke — Verified Direct-to-Caretaker Homes & Land in Kenya",
   description:
     "Zero broker fees. Unlock verified Kenyan caretaker contacts with a KES 200 7-Day Category Pass via M-Pesa.",
+  openGraph: {
+    title: "propertyaccess.ke — Verified Direct-to-Caretaker Homes & Land in Kenya",
+    description:
+      "Zero broker fees. Unlock verified Kenyan caretaker contacts with a KES 200 7-Day Category Pass via M-Pesa.",
+    url: "https://propertyaccess-ke.netlify.app",
+    siteName: "propertyaccess.ke",
+    locale: "en_KE",
+    type: "website",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

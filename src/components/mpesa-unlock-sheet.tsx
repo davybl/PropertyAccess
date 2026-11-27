@@ -253,7 +253,7 @@ export function MpesaUnlockSheet({
   };
 
   const whatsappText = encodeURIComponent(
-    `Habari ${unlockedContact?.caretaker_name || ""}, I unlocked your contact on propertyaccess.app for "${listingTitle}" (KES ${Number(
+    `Habari ${unlockedContact?.caretaker_name || ""}, I unlocked your contact on https://propertyaccess-ke.netlify.app for "${listingTitle}" (KES ${Number(
       priceKes
     ).toLocaleString()}). When can I come for viewing?`
   );

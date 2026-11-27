@@ -133,7 +133,7 @@ export function CaretakerUnlockCard({
   const whatsappMessage = encodeURIComponent(
     `Habari ${contact?.caretaker_name || ""}, I found "${listingTitle}" (KES ${Number(
       priceKes
-    ).toLocaleString()}) on propertyaccess.app. Is it still vacant for viewing?`
+    ).toLocaleString()}) on propertyaccess.ke. Is it still vacant for viewing?`
   );
 
   return (

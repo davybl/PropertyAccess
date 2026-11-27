@@ -99,7 +99,7 @@ export async function initiateDarajaStkPush(
   const passkey = process.env.DARAJA_PASSKEY;
   const callbackUrl =
     process.env.DARAJA_CALLBACK_URL ||
-    "https://propertyaccess.app/api/mpesa/callback";
+    "https://propertyaccess-ke.netlify.app/api/mpesa/callback";
 
   if (!passkey) {
     throw new Error("DARAJA_PASSKEY is missing in .env.local");

@@ -73,7 +73,7 @@ export function AppShell({
               href="/"
               className="text-lg font-extrabold tracking-tight sm:text-xl"
             >
-              propertyaccess<span className="text-emerald-brand">.app</span>
+              propertyaccess<span className="text-emerald-brand">.ke</span>
             </Link>
             <span className="hidden items-center gap-1 rounded-full border border-subtle bg-card px-2.5 py-1 text-xs font-medium text-ink-secondary sm:inline-flex">
               <MapPin className="h-3.5 w-3.5 text-emerald-brand" />
